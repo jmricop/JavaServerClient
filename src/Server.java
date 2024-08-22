@@ -7,39 +7,43 @@
  *
  * @author neong
  */
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 import java.util.Scanner;
 
+import ServerController.ClientHandler;
 public class Server {
 
+    private static final int SERVER_PORT = 4000; 
+
     public static void main(String[] args) {
+        ServerSocket serverSocket = null;
+
         try {
             // Create a server socket on port 12345
-            ServerSocket serverSocket = new ServerSocket(12345);
+            serverSocket= new ServerSocket(SERVER_PORT);
             System.out.println("Server waiting for connections...");
 
             // Wait for a client to connect
-            Socket clientSocket = serverSocket.accept();
-            System.out.println("Client connected");
-
-            // Set up input from the client
-            Scanner scanner = new Scanner(clientSocket.getInputStream());
-
-            // Read messages from the client
-            while (scanner.hasNextLine()) {
-                String clientMessage = scanner.nextLine();
-                System.out.println(clientMessage);
+            while(true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Client connected");
+                
+                ClientHandler newClient = new ClientHandler(clientSocket);
+                new Thread(newClient).start();
             }
-
-            // Close sockets
-            scanner.close();
-            clientSocket.close();
-            serverSocket.close();
+            
 
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if(serverSocket != null) {
+                try {
+                    serverSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
